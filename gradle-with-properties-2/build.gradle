@@ -1,0 +1,126 @@
+apply plugin: 'base'
+
+description = 'Spring Integration Groovy DSL'
+
+allprojects {
+	group = 'org.springframework.integration'
+	repositories {
+		maven { url 'https://repo.spring.io/libs-snapshot' }
+		maven { url 'https://repo.spring.io/libs-milestone' }
+		maven { url 'https://repo.spring.io/libs-release' }
+		maven { url 'https://repo.spring.io/plugins-release' }
+	}
+}
+
+
+subprojects { subproject ->
+	apply plugin: 'groovy'
+	apply plugin: 'maven'
+	apply plugin: 'idea'
+	apply plugin: 'eclipse'
+
+	sourceCompatibility = 1.6
+	targetCompatibility = 1.6
+
+
+	install {
+		repositories.mavenInstaller {
+			customizePom(pom, project)
+		}
+	}
+
+
+	task sourcesJar(type: Jar) {
+		classifier = 'sources'
+		from sourceSets.main.allSource
+	}
+
+	task groovydocJar(type: Jar) {
+		classifier = 'groovydoc'
+		from groovydoc
+	}
+
+
+	artifacts {
+		archives sourcesJar
+		archives groovydocJar
+	}
+
+	// dependencies that are common across all java projects
+	dependencies {
+
+		compile "org.codehaus.groovy:groovy-all:$groovyVersion"
+
+		testCompile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest'
+		}
+		testCompile "log4j:log4j:$log4jVersion"
+		testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
+		}
+	}
+
+}
+
+project('spring-integration-dsl-groovy-core') {
+	description = 'Spring Integration Groovy DSL Core'
+	dependencies {
+		// dependent libraries
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		testCompile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+		testCompile "javax.servlet:javax.servlet-api:$servletApiVersion"
+	}
+}
+
+project('spring-integration-dsl-groovy-jms') {
+	description = 'Spring Integration Groovy DSL JMS'
+	dependencies {
+		compile project(":spring-integration-dsl-groovy-core")
+		compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+		compile "javax.jms:jms-api:$jmsApiVersion"
+
+		// libraries only needed for test
+		testCompile("org.apache.activemq:activemq-broker:$activeMqVersion")
+		testCompile("org.apache.activemq:activemq-kahadb-store:$activeMqVersion") {
+			exclude group: 'org.springframework', module: 'spring-context'
+		}
+	}
+}
+
+project('spring-integration-dsl-groovy-amqp') {
+	description = 'Spring Integration Groovy DSL AMQP'
+	dependencies {
+		compile project(":spring-integration-dsl-groovy-core")
+		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
+	}
+}
+
+project('spring-integration-dsl-groovy-http') {
+	description = 'Spring Integration Groovy DSL Http'
+	dependencies {
+		compile project(":spring-integration-dsl-groovy-core")
+		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+		testCompile "javax.servlet:javax.servlet-api:$servletApiVersion"
+	}
+}
+
+project('spring-integration-dsl-groovy-samples') {
+	description = 'Spring Integration Groovy DSL Samples'
+	dependencies {
+		compile project(":spring-integration-dsl-groovy-core")
+		compile project(":spring-integration-dsl-groovy-http")
+		compile "log4j:log4j:$log4jVersion"
+	}
+}
+
+project('spring-integration-dsl-groovy-feed') {
+	description = 'Spring Integration Groovy DSL Feed'
+	dependencies {
+		compile project(":spring-integration-dsl-groovy-core")
+		compile "org.springframework.integration:spring-integration-feed:$springIntegrationVersion"
+	}
+}
+
+
+
